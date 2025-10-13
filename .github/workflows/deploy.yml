@@ -1,0 +1,57 @@
+name: 🚀 Discord Bot Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run tests
+        run: |
+          if [ -f "package.json" ] && grep -q "\"test\"" package.json; then
+            npm test
+          else
+            echo "No test script found, skipping..."
+          fi
+
+      - name: 🏗️ Build project (if applicable)
+        run: |
+          if [ -f "package.json" ] && grep -q "\"build\"" package.json; then
+            npm run build
+          else
+            echo "No build step defined, skipping..."
+          fi
+
+      - name: 🚀 Deploy to VPS
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          script: |
+            echo "🔁 Updating bot on VPS..."
+            cd /home/lualabs/discord/bot || exit 1
+            git pull origin main
+            npm ci --omit=dev
+            pm2 restart all || pm2 start index.js --name "discord-bot"
+            echo "✅ Deployment complete!"
+
+      - name: ✅ Notify success
+        run: echo "Deployment to VPS completed successfully!"
