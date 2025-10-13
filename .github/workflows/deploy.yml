@@ -52,7 +52,7 @@ jobs:
             npm ci --omit=dev
             pm2 restart all || pm2 start index.js --name "discord-bot"
             echo "✅ Deployment complete!"
-            echo "📄 Últimas 50 linhas do log do bot:"
+            echo "📄 Last 50 lines of the bot log:"
             pm2 logs discord-bot --lines 50 --nostream
 
       - name: ✅ Notify success
