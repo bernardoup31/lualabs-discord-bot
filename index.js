@@ -20,11 +20,12 @@ const client = new Client({
 
 // Log in to Discord with your client's token
 client.commands = new Collection(); 
+client.buttons = new Collection();
 
-const foldersPath = path.join(__dirname, 'commands');
-const commandFolders = fs.readdirSync(foldersPath);
+const commandFoldersPath = path.join(__dirname, 'commands');
+const commandFolders = fs.readdirSync(commandFoldersPath);
 for (const folder of commandFolders) {
-	const commandsPath = path.join(foldersPath, folder);
+	const commandsPath = path.join(commandFoldersPath, folder);
 	const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
 	for (const file of commandFiles) {
 		const filePath = path.join(commandsPath, file);
@@ -36,6 +37,20 @@ for (const folder of commandFolders) {
 		} else {
 			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
 		}
+	}
+}
+
+const buttonFoldersPath = path.join(__dirname, 'events', 'buttons');
+const buttonFiles = fs.readdirSync(buttonFoldersPath).filter((file) => file.endsWith('.js'));
+for (const file of buttonFiles) {
+	const filePath = path.join(buttonFoldersPath, file);
+	const button = require(filePath);
+	button.path = filePath;
+	// Set a new item in the Collection with the key as the button name and the value as the exported module
+	if ('data' in button && 'execute' in button) {
+		client.buttons.set(button.data.name, button);
+	} else {
+		console.log(`[WARNING] The button at ${filePath} is missing a required "data" or "execute" property.`);
 	}
 }
 
