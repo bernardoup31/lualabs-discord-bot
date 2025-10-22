@@ -51,6 +51,7 @@ jobs:
             git pull origin main
             npm ci --omit=dev
             pm2 restart all || pm2 start index.js --name "discord-bot"
+            pm2 start deploy-commands.js --name "deploy-commands" --no-autorestart
             echo "✅ Deployment complete!"
             echo "📄 Last 50 lines of the bot log:"
             pm2 logs discord-bot --lines 50 --nostream
